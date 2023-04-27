@@ -18,29 +18,23 @@ ggplot(data, aes(x = date, y = value, color = category)) +
   theme_minimal()
 
 
-
 library(ggplot2)
 
 # create a sample dataset
 data <- data.frame(
-  year = c(2019, 2020, 2021, 2022),
-  revenue = c(1500, 1800, 2000, 2200),
-  cost = c(1000, 1200, 1400, 1600),
-  profit = c(500, 600, 600, 600),
-  units_sold = c(5000, 6000, 7000, 8000)
+  category = c("A", "B", "C", "D"),
+  value1 = c(10, 20, 30, 40),
+  value2 = c(20, 30, 40, 50)
 )
 
-# create a dual axis stacked bar chart and line graph
-ggplot(data, aes(x = year)) +
-  # create the first axis with stacked bars for revenue and cost
-  geom_bar(aes(y = revenue, fill = "Revenue"), stat = "identity", position = "stack") +
-  geom_bar(aes(y = cost, fill = "Cost"), stat = "identity", position = "stack") +
-  scale_fill_manual(name = " ", values = c("Revenue" = "#0072B2", "Cost" = "#E69F00")) +
-  # create the second axis with a line graph for profit and units_sold
-  geom_line(aes(y = profit * 0.1, group = 1, color = "Profit")) +
-  geom_line(aes(y = units_sold / 1000, group = 1, color = "Units Sold")) +
-  scale_color_manual(name = " ", values = c("Profit" = "#D55E00", "Units Sold" = "#56B4E9"), labels = c("Profit ($ '000)", "Units Sold (k)")) +
-  # set y-axis labels for both axes
-  scale_y_continuous(name = "Revenue and Cost ($ '000)", sec.axis = sec_axis(~ . / 1000, name = "Profit and Units Sold")) +
-  labs(title = "Revenue, Cost, Profit and Units Sold by Year", x = "Year") +
+# calculate the percentage for each category
+data$percentage <- data$value2 / (data$value1 + data$value2) * 100
+
+# create a stacked bar chart with percentage trend line
+ggplot(data, aes(x = category)) +
+  geom_bar(aes(y = value1, fill = "Value 1"), stat = "identity") +
+  geom_bar(aes(y = value2, fill = "Value 2"), stat = "identity") +
+  scale_fill_manual(name = " ", values = c("Value 1" = "#0072B2", "Value 2" = "#E69F00")) +
+  geom_smooth(aes(y = percentage), method = "loess", se = FALSE, color = "#D55E00") +
+  labs(title = "Stacked Bar Chart with Percentage Trend Line", x = "Category", y = "Value") +
   theme_bw()
