@@ -1,0 +1,18 @@
+library(ggplot2)
+
+# Create example data
+data <- data.frame(
+  category = c("Category A", "Category B", "Category C", "Category D"),
+  value = c(30, 20, 25, 25)
+)
+
+# Calculate percentage values
+data$percent <- round(data$value/sum(data$value)*100, 1)
+
+# Create pie chart with labels and percents
+ggplot(data, aes(x="", y=value, fill=category)) +
+  geom_bar(stat="identity", color="white") +
+  coord_polar("y", start=0) +
+  theme_void() +
+  geom_text(aes(label=paste0(category, " (", percent, "%)")), position=position_stack(vjust=0.5)) +
+  scale_fill_brewer(palette="Set2")
