@@ -39,14 +39,25 @@ library(shiny)
 library(ggplot2)
 
 # Define server for survey results with confidence intervals app
+library(shiny)
+library(ggplot2)
+
+# Define server for survey results with confidence intervals app
 function(input, output) {
+  
   # Calculate standard error
   se <- reactive({
+    if (input$sample_size <= 0) {
+      return(NULL)
+    }
     sqrt(input$proportion * (1 - input$proportion) / input$sample_size)
   })
   
   # Calculate confidence interval
   ci <- reactive({
+    if (is.null(se())) {
+      return(NULL)
+    }
     z_score <- qnorm(1 - (1 - input$confidence) / 2)
     lower <- input$proportion - z_score * se()
     upper <- input$proportion + z_score * se()
@@ -55,6 +66,9 @@ function(input, output) {
   
   # Render results table
   output$results_table <- renderTable({
+    if (is.null(ci())) {
+      return(NULL)
+    }
     data.frame("Proportion" = input$proportion,
                "Standard Error" = se(),
                "Confidence Interval" = paste0(format(ci()[1], digits = 4), " - ", format(ci()[2], digits = 4)))
@@ -62,6 +76,9 @@ function(input, output) {
   
   # Render plot of confidence interval
   output$ci_plot <- renderPlot({
+    if (is.null(ci())) {
+      return(NULL)
+    }
     ggplot(data.frame(x = c(ci()[1], ci()[2])), aes(x = x)) +
       geom_vline(xintercept = input$proportion, color = "blue") +
       geom_segment(aes(x = ci()[1], xend = ci()[2], y = 0, yend = 0), size = 2) +
@@ -73,6 +90,9 @@ function(input, output) {
   
   # Render interpretation of confidence interval
   output$ci_interpretation <- renderText({
+    if (is.null(ci())) {
+      return(NULL)
+    }
     if (input$proportion >= ci()[1] && input$proportion <= ci()[2]) {
       "The population proportion is likely to be within the confidence interval."
     } else {
