@@ -1,0 +1,83 @@
+library(shiny)
+
+# Define UI for survey results with confidence intervals app
+fluidPage(
+  # App title
+  titlePanel("Survey Results with Confidence Intervals"),
+  
+  # Sidebar with input controls
+  sidebarLayout(
+    sidebarPanel(
+      # Input field for sample size
+      numericInput("sample_size", "Sample Size:", value = 100),
+      
+      # Input field for proportion
+      sliderInput("proportion", "Proportion:", min = 0, max = 1, value = 0.5, step = 0.01),
+      
+      # Input field for level of confidence
+      radioButtons("confidence", "Level of Confidence:",
+                   choices = list("90%" = 0.9, "95%" = 0.95, "99%" = 0.99),
+                   selected = 0.95)
+    ),
+    
+    # Main panel with results and plot
+    mainPanel(
+      # Results table
+      tableOutput("results_table"),
+      
+      # Plot of confidence interval
+      plotOutput("ci_plot"),
+      
+      # Interpretation of confidence interval
+      textOutput("ci_interpretation")
+    )
+  )
+)
+
+
+library(shiny)
+library(ggplot2)
+
+# Define server for survey results with confidence intervals app
+function(input, output) {
+  # Calculate standard error
+  se <- reactive({
+    sqrt(input$proportion * (1 - input$proportion) / input$sample_size)
+  })
+  
+  # Calculate confidence interval
+  ci <- reactive({
+    z_score <- qnorm(1 - (1 - input$confidence) / 2)
+    lower <- input$proportion - z_score * se()
+    upper <- input$proportion + z_score * se()
+    c(lower, upper)
+  })
+  
+  # Render results table
+  output$results_table <- renderTable({
+    data.frame("Proportion" = input$proportion,
+               "Standard Error" = se(),
+               "Confidence Interval" = paste0(format(ci()[1], digits = 4), " - ", format(ci()[2], digits = 4)))
+  })
+  
+  # Render plot of confidence interval
+  output$ci_plot <- renderPlot({
+    ggplot(data.frame(x = c(ci()[1], ci()[2])), aes(x = x)) +
+      geom_vline(xintercept = input$proportion, color = "blue") +
+      geom_segment(aes(x = ci()[1], xend = ci()[2], y = 0, yend = 0), size = 2) +
+      geom_point(aes(x = ci()[1], y = 0), size = 4, color = "red") +
+      geom_point(aes(x = ci()[2], y = 0), size = 4, color = "red") +
+      labs(x = "Proportion", y = "") +
+      theme_classic()
+  })
+  
+  # Render interpretation of confidence interval
+  output$ci_interpretation <- renderText({
+    if (input$proportion >= ci()[1] && input$proportion <= ci()[2]) {
+      "The population proportion is likely to be within the confidence interval."
+    } else {
+      "The population proportion is unlikely to be within the confidence interval."
+    }
+  })
+}
+
