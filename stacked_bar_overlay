@@ -1,22 +1,33 @@
 library(ggplot2)
 
-# Create some sample data
-data <- data.frame(category = c("Category 1", "Category 2", "Category 3"),
-                   value1 = c(10, 20, 30),
-                   value2 = c(20, 30, 40))
+# Create sample data
+set.seed(123)
+df <- data.frame(
+  month = rep(month.abb, 2),
+  category = rep(c("Category 1", "Category 2"), each = 12),
+  value = rpois(24, 50)
+)
 
-# Calculate the percentages
-data$perc <- 100 * data$value2 / (data$value1 + data$value2)
+# Create stacked bar chart
+ggplot(df, aes(x = month, y = value, fill = category)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("#FFA500", "#00BFFF")) +
+  xlab("Month") +
+  ylab("Total Value") +
+  ggtitle("Stacked Bar Chart with Total Value Line") +
+  theme(plot.title = element_text(hjust = 0.5))
 
-# Create the stacked bar chart with secondary axis
-ggplot(data, aes(fill = category)) +
-  geom_bar(aes(x = 1, y = value1), stat = "identity") +
-  geom_bar(aes(x = 1, y = value2), stat = "identity") +
-  scale_fill_hue() +
-  ylab("Counts") +
-  ggtitle("Stacked Bar Chart with Percentage Line") +
+# Create line graph of total values
+df_total <- aggregate(value ~ month, data = df, FUN = sum)
+
+# Overlay line graph on top of stacked bar chart
+ggplot() +
+  # Stacked bar chart
+  geom_bar(data = df, aes(x = month, y = value, fill = category), stat = "identity") +
+  scale_fill_manual(values = c("#FFA500", "#00BFFF")) +
+  xlab("Month") +
+  ylab("Total Value") +
+  ggtitle("Stacked Bar Chart with Total Value Line") +
   theme(plot.title = element_text(hjust = 0.5)) +
-  # Add secondary axis with percentages
-  scale_y_continuous(sec.axis = sec_axis(~., name = "Percentage", labels = scales::percent, limits = c(0, 100))) +
-  # Add percentage line
-  geom_line(data = data, aes(x = 1, y = perc), color = "red")
+  # Total value line graph
+  geom_line(data = df_total, aes(x = month, y = value), color = "black", size = 1)
