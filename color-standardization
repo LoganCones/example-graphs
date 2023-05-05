@@ -1,0 +1,32 @@
+library(ggplot2)
+
+# Define a list of hex codes
+my_colors <- c("#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF")
+
+# Define a function to create a custom ggplot theme
+my_theme <- function(my_colors) {
+  
+  # Define the color palette
+  my_palette <- scale_color_manual(values = my_colors) +
+    scale_fill_manual(values = my_colors)
+  
+  # Create the theme
+  theme_bw() +
+    theme(panel.border = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(color = my_colors[1], size = 1),
+          axis.text = element_text(color = my_colors[2], size = 12),
+          axis.title = element_text(color = my_colors[3], size = 14, face = "bold"),
+          legend.position = "bottom",
+          legend.title = element_blank(),
+          legend.text = element_text(color = my_colors[4], size = 12),
+          legend.key = element_blank()) +
+    my_palette
+}
+
+# Use the function to create a ggplot with the custom theme
+ggplot(mtcars, aes(x = wt, y = mpg, color = factor(cyl))) +
+  geom_point(size = 3) +
+  labs(title = "My Custom ggplot Theme") +
+  my_theme(my_colors)
