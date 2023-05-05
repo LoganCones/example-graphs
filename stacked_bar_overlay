@@ -31,3 +31,21 @@ ggplot() +
   theme(plot.title = element_text(hjust = 0.5)) +
   # Total value line graph
   geom_line(data = df_total, aes(x = month, y = value), color = "black", size = 1)
+
+
+
+library(ggplot2)
+
+# Create example data
+x <- 1:10
+y1 <- x^2
+y2 <- x^3
+df <- data.frame(x = x, y1 = y1, y2 = y2)
+
+# Create plot with two y-axes
+ggplot(df, aes(x = x)) +
+  geom_line(aes(y = y1, color = "y1"), size = 1.5) +
+  geom_line(aes(y = y2 * 0.01, color = "y2"), size = 1.5) +
+  scale_color_manual(values = c("y1" = "blue", "y2" = "red")) +
+  scale_y_continuous(name = "y1", sec.axis = sec_axis(~ . * 100, name = "y2")) +
+  labs(title = "Two Y-Axis Plot")
