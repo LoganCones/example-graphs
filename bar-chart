@@ -1,0 +1,21 @@
+library(ggplot2)
+
+# Create example data
+df <- data.frame(category = c("A", "B", "C", "D"),
+                 value = c(25, 20, 35, 10))
+
+# Sort data frame by value in descending order
+df <- df[order(-df$value),]
+
+# Create plot
+ggplot(df, aes(x = value, y = category)) +
+  geom_col(fill = "#0072B2") +
+  labs(x = "Value", y = "") +
+  scale_x_continuous(limits = c(0, max(df$value)),
+                     expand = c(0, 0)) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        panel.grid.major.x = element_line(color = "gray", linetype = "dotted"))
