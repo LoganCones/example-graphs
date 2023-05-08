@@ -1,0 +1,8 @@
+set.seed(123) # set seed for reproducibility
+
+n <- 300 # number of data points
+
+x <- rnorm(n, mean = 10, sd = 2) # generate random variable 1
+y <- rnorm(n, mean = 10, sd = 2) - x/2 # generate random variable 2 with slight negative correlation
+
+data <- data.frame(x = x, y = y) # create data frame with two variables
