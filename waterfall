@@ -1,0 +1,19 @@
+# Load required packages
+library(waterfall)
+library(ggplot2)
+
+# Create fake sales data
+sales <- data.frame(
+  category = c("January", "February", "March", "April"),
+  actual = c(50, 70, 90, 110),
+  goal = c(60, 80, 100, 120)
+)
+
+# Create a waterfall chart
+waterfall(sales$category, sales$actual, 
+          subtotal = c(0, cumsum(diff(sales$actual))),
+          ylab = "Sales", xlab = "Month",
+          main = "Sales vs. Goal",
+          col = c("#9DC5BB", "#CCE5A9", "#F1D4AF"),
+          positive_color = "#5B9BD5", negative_color = "#ED7D31",
+          total_color = "#4472C4")
