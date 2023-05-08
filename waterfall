@@ -17,3 +17,19 @@ waterfall(sales$category, sales$actual,
           col = c("#9DC5BB", "#CCE5A9", "#F1D4AF"),
           positive_color = "#5B9BD5", negative_color = "#ED7D31",
           total_color = "#4472C4")
+
+
+# Load the waterfalls package
+library(waterfalls)
+
+# Create a data frame with fake sales goal data
+df <- data.frame(Category = c("Sales", "Cost of Goods Sold", "Gross Margin",
+                              "Expenses", "Net Income"),
+                 Amount = c(100, -60, 40, -30, 10))
+
+# Create the waterfall chart
+waterfall(df$Category, df$Amount, type="absolute", 
+          xlab="Category", ylab="Amount", 
+          main="Sales Waterfall Chart", 
+          subtotal.plot.colors = c("#CCFFCC", "#FFCCCC"),
+          total.plot.color = "blue", total.plot.label = "Total")
