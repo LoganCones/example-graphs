@@ -1,35 +1,20 @@
-# Load required packages
-library(waterfall)
 library(ggplot2)
 
-# Create fake sales data
-sales <- data.frame(
-  category = c("January", "February", "March", "April"),
-  actual = c(50, 70, 90, 110),
-  goal = c(60, 80, 100, 120)
+# create a data frame with the changes in value for each category
+data <- data.frame(
+  category = c("Starting Value", "Category 1", "Category 2", "Category 3", "Ending Value"),
+  value = c(100, 20, -15, -30, NA)
 )
 
-# Create a waterfall chart
-waterfall(sales$category, sales$actual, 
-          subtotal = c(0, cumsum(diff(sales$actual))),
-          ylab = "Sales", xlab = "Month",
-          main = "Sales vs. Goal",
-          col = c("#9DC5BB", "#CCE5A9", "#F1D4AF"),
-          positive_color = "#5B9BD5", negative_color = "#ED7D31",
-          total_color = "#4472C4")
+# calculate the running total for each change in value
+data$running_total <- cumsum(data$value)
 
-
-# Load the waterfalls package
-library(waterfalls)
-
-# Create a data frame with fake sales goal data
-df <- data.frame(Category = c("Sales", "Cost of Goods Sold", "Gross Margin",
-                              "Expenses", "Net Income"),
-                 Amount = c(100, -60, 40, -30, 10))
-
-# Create the waterfall chart
-waterfall(df$Category, df$Amount, type="absolute", 
-          xlab="Category", ylab="Amount", 
-          main="Sales Waterfall Chart", 
-          subtotal.plot.colors = c("#CCFFCC", "#FFCCCC"),
-          total.plot.color = "blue", total.plot.label = "Total")
+# create a waterfall chart with ggplot
+ggplot(data, aes(x = category, y = running_total, fill = value > 0)) +
+  geom_rect(aes(ymin = pmax(running_total - value, 0), ymax = running_total, xmin = category, xmax = category), 
+            alpha = 0.5, show.legend = FALSE) +
+  geom_segment(aes(x = category, xend = category, y = running_total - value, yend = running_total), 
+               color = "grey50") +
+  scale_fill_manual(values = c("darkgreen", "red")) +
+  labs(title = "Waterfall Chart", x = "", y = "Value") +
+  theme_minimal()
