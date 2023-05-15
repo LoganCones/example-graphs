@@ -1,0 +1,18 @@
+# UI
+ui <- fluidPage(
+  tags$head(
+    tags$script(HTML('
+      $(document).ready(function() {
+        // Find the cancel button within the shinyalert pop-up
+        var cancelButton = $(".swal2-cancel-button");
+
+        // Modify the background color of the cancel button
+        cancelButton.css("background-color", "#ff0000");
+        cancelButton.css("border-color", "#ff0000");
+        cancelButton.css("color", "#ffffff");
+      });
+    '))
+  ),
+
+  # Rest of your UI code
+)
