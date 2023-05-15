@@ -1,0 +1,40 @@
+# UI
+ui <- fluidPage(
+  checkboxGroupInput("selected_components", "Select components:",
+    choices = c("Component 1", "Component 2", "Component 3")
+  ),
+  
+  uiOutput("dynamic_components")
+)
+
+# Server
+server <- function(input, output) {
+  output$dynamic_components <- renderUI({
+    # Get the selected components
+    selected <- input$selected_components
+    
+    # Create a list to store the UI components
+    components <- list()
+    
+    # Iterate over the selected components
+    for (comp in selected) {
+      if (comp == "Component 1") {
+        components$component1 <- # Create UI component for Component 1
+      } else if (comp == "Component 2") {
+        components$component2 <- # Create UI component for Component 2
+      } else if (comp == "Component 3") {
+        components$component3 <- # Create UI component for Component 3
+      }
+    }
+    
+    # Return the UI components in the desired order
+    tagList(
+      components$component1,
+      components$component2,
+      components$component3
+    )
+  })
+}
+
+# Run the Shiny app
+shinyApp(ui, server)
