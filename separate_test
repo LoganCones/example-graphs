@@ -1,3 +1,5 @@
+library(shiny)
+
 # UI
 ui <- fluidPage(
   checkboxGroupInput("selected_components", "Select components:",
@@ -19,11 +21,20 @@ server <- function(input, output) {
     # Iterate over the selected components
     for (comp in selected) {
       if (comp == "Component 1") {
-        components$component1 <- # Create UI component for Component 1
+        components$component1 <- fluidRow(
+          column(12, h4("Component 1")),
+          column(12, verbatimTextOutput("output_component1"))
+        )
       } else if (comp == "Component 2") {
-        components$component2 <- # Create UI component for Component 2
+        components$component2 <- fluidRow(
+          column(12, h4("Component 2")),
+          column(12, verbatimTextOutput("output_component2"))
+        )
       } else if (comp == "Component 3") {
-        components$component3 <- # Create UI component for Component 3
+        components$component3 <- fluidRow(
+          column(12, h4("Component 3")),
+          column(12, verbatimTextOutput("output_component3"))
+        )
       }
     }
     
@@ -33,6 +44,19 @@ server <- function(input, output) {
       components$component2,
       components$component3
     )
+  })
+  
+  # Sample reactive expressions to show different outputs for each component
+  output$output_component1 <- renderText({
+    "This is the output for Component 1."
+  })
+  
+  output$output_component2 <- renderText({
+    "This is the output for Component 2."
+  })
+  
+  output$output_component3 <- renderText({
+    "This is the output for Component 3."
   })
 }
 
