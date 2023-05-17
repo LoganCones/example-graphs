@@ -10,13 +10,22 @@ ui <- fluidPage(
 )
 
 # Server
-server <- function(input, output) {
+server <- function(input, output, session) {
   # Create a reactiveValues object to store the selected components and their order
   selected_components <- reactiveValues(order = NULL, components = list())
   
   observeEvent(input$selected_components, {
-    # Get the newly selected components
+    # Get the newly selected and deselected components
     newly_selected <- setdiff(input$selected_components, selected_components$order)
+    deselected <- setdiff(selected_components$order, input$selected_components)
+    
+    # Remove the deselected components from the order and components
+    selected_components$order <- setdiff(selected_components$order, deselected)
+    lapply(deselected, function(comp) {
+      id <- paste0("select_", comp)
+      removeUI(selector = paste0("#", id))
+      selected_components$components[[id]] <- NULL
+    })
     
     # Append the newly selected components to the existing order
     selected_components$order <- c(selected_components$order, newly_selected)
