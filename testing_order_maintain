@@ -2,7 +2,9 @@ library(shiny)
 
 # UI
 ui <- fluidPage(
-  checkboxGroupInput("selected_components", "Select components:",
+  checkboxGroupInput(
+    "selected_components",
+    "Select components:",
     choices = c("Component 1", "Component 2", "Component 3")
   ),
   
