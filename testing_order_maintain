@@ -27,25 +27,28 @@ server <- function(input, output, session) {
     # Append the newly selected components to the existing order
     selected_components$order <- c(selected_components$order, newly_selected)
     
-    # Update the UI
-    if (length(selected_components$order) > 0) {
-      output$dynamic_components <- renderUI({
-        tagList(
-          lapply(selected_components$order, function(comp) {
-            fluidRow(
-              column(12, h4(comp)),
-              column(12, pickerInput(
-                paste0("select_", comp),
-                label = "Select:",
-                choices = NULL
-              ))
-            )
-          })
-        )
-      })
-    } else {
-      output$dynamic_components <- renderUI(NULL)
+    # If all selections are removed, reset the order and clear the UI components
+    if (length(input$selected_components) == 0) {
+      selected_components$order <- NULL
+      removeUI(selector = "#dynamic_components")
+      return()
     }
+    
+    # Update the UI
+    output$dynamic_components <- renderUI({
+      tagList(
+        lapply(selected_components$order, function(comp) {
+          fluidRow(
+            column(12, h4(comp)),
+            column(12, pickerInput(
+              paste0("select_", comp),
+              label = "Select:",
+              choices = NULL
+            ))
+          )
+        })
+      )
+    })
   })
   
   # Sample reactive expressions to update choices for each pickerInput
