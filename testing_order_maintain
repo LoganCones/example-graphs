@@ -13,15 +13,18 @@ ui <- fluidPage(
 
 # Server
 server <- function(input, output, session) {
-  # Create an empty list to store the components
-  components <- list()
+  # Create a reactiveValues object to store the selected components and their order
+  selected_components <- reactiveValues(order = NULL, components = NULL)
   
   observeEvent(input$selected_components, {
-    # Get the newly selected and deselected components
-    selected <- input$selected_components
+    # Get the newly selected components
+    newly_selected <- setdiff(input$selected_components, selected_components$order)
     
-    # Iterate over the selected components and create pickerInputs
-    components <- lapply(selected, function(comp) {
+    # Append the newly selected components to the existing order
+    selected_components$order <- c(selected_components$order, newly_selected)
+    
+    # Create the pickerInputs for the newly selected components
+    new_components <- lapply(newly_selected, function(comp) {
       pickerInput(
         paste0("select_", comp),
         label = comp,
@@ -29,21 +32,31 @@ server <- function(input, output, session) {
       )
     })
     
+    # Update the choices for all pickerInputs
+    update_picker_inputs()
+    
+    # Combine the existing components with the new components and store them in selected_components
+    selected_components$components <- c(selected_components$components, new_components)
+    
     # Update the UI
     output$dynamic_components <- renderUI({
-      tagList(components)
+      tagList(selected_components$components)
     })
   })
   
-  observe({
-    # Update choices for the pickerInputs based on the selected components
-    selected <- input$selected_components
-    for (comp in selected) {
+  # Function to update the choices for all pickerInputs
+  update_picker_inputs <- function() {
+    for (comp in selected_components$order) {
       id <- paste0("select_", comp)
       
       # Update choices for the pickerInput based on comp
       updatePickerInput(session, id, choices = c("Choice 1", "Choice 2", "Choice 3"))
     }
+  }
+  
+  # Initial update of pickerInputs when the app starts
+  observe({
+    update_picker_inputs()
   })
 }
 
