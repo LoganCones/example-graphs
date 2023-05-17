@@ -1,0 +1,58 @@
+# Server
+server <- function(input, output) {
+  # Create a reactive value to store the selected columns in order
+  selected_columns <- reactiveValues(order = character(0))
+  
+  # Update the selected_columns reactive value when checkbox selection changes
+  observeEvent(input$selected_columns, {
+    selected_columns$order <- input$selected_columns
+  })
+  
+  # Generate dynamic pickerInputs based on selected columns
+  output$dynamic_inputs <- renderUI({
+    selected <- selected_columns$order
+    
+    if (length(selected) > 0) {
+      # Filter the dataset based on selected columns
+      selected_dataset <- dataset[, selected, drop = FALSE]
+      
+      # Create dynamic inputs and their corresponding 'and/or/end' inputs
+      dynamic_inputs <- lapply(selected, function(col) {
+        column_input <- column(
+          6,
+          pickerInput(inputId = col, label = col, choices = unique(selected_dataset[[col]]))
+        )
+        
+        aoe_input <- column(
+          6,
+          pickerInput(inputId = paste0(col, "_aoe"), label = "AOE", choices = c("and", "or", "end"))
+        )
+        
+        fluidRow(column_input, aoe_input)
+      })
+      
+      tagList(dynamic_inputs)
+    } else {
+      NULL
+    }
+  })
+  
+  # Generate text output describing user selections
+  output$selection_text <- renderText({
+    selected_columns <- selected_columns$order
+    
+    if (length(selected_columns) > 0) {
+      text <- "You have selected the following columns:\n"
+      
+      for (col in selected_columns) {
+        values <- input[[col]]
+        col_text <- paste("Column", col, "with these values:", paste(values, collapse = ", "))
+        text <- paste(text, col_text, "\n")
+      }
+      
+      text
+    } else {
+      "No columns selected."
+    }
+  })
+}
