@@ -1,0 +1,95 @@
+library(shiny)
+
+# Sample dataset
+dataset <- data.frame(
+  col1 = 1:5,
+  col2 = letters[1:5],
+  col3 = LETTERS[1:5],
+  col4 = rnorm(5),
+  col5 = runif(5),
+  col6 = c(TRUE, FALSE, TRUE, FALSE, TRUE),
+  col7 = factor(c("A", "B", "A", "B", "A")),
+  col8 = as.Date("2022-01-01") + 0:4
+)
+
+# UI
+ui <- fluidPage(
+  checkboxGroupInput("selected_components", "Select Additional Filters:", choices = colnames(dataset)),
+  uiOutput("dynamic_inputs"),
+  verbatimTextOutput("selection_text")
+)
+
+# Server
+server <- function(input, output) {
+  
+  selected_components <- reactiveValues(order = NULL, components = NULL)
+  
+  observeEvent(input$selected_components, {
+    # Get the newly selected and deselected componentsa
+    newly_selected <- setdiff(input$selected_components, selected_components$order)
+    deselected <- setdiff(selected_components$order, input$selected_components)
+    
+    # Remove the deselected components from the order and components
+    selected_components$order <- setdiff(selected_components$order, deselected)
+    selected_components$components <- selected_components$components[!names(selected_components$components) %in% deselected]
+    
+    # Append the newly selected components to the existing order
+    selected_components$order <- c(selected_components$order, newly_selected)
+  
+  # Update the selected_columns reactive value when checkbox selection changes
+  observeEvent(input$selected_columns, {
+    selected_columns$order <- input$selected_columns
+  })
+  
+  # Generate dynamic pickerInputs based on selected columns
+  observe({
+    selected <- selected_components$order
+    
+    # Filter the dataset based on selected columns
+    selected_dataset <- dataset[, selected, drop = FALSE]
+    
+    # Create dynamic inputs and their corresponding 'and/or/end' inputs
+    dynamic_inputs <- lapply(selected, function(col) {
+      column_input <- column(
+        6,
+        pickerInput(inputId = col, label = col, choices = unique(selected_dataset[[col]]))
+      )
+      
+      aoe_input <- column(
+        6,
+        pickerInput(inputId = paste0(col, "_aoe"), label = "AOE", choices = c("and", "or", "end"))
+      )
+      
+      fluidRow(column_input, aoe_input)
+    })
+    
+    # Update the UI with dynamic inputs
+    output$dynamic_inputs <- renderUI({
+      tagList(dynamic_inputs)
+    })
+  })
+  
+  })
+  
+  # Generate text output describing user selections
+  output$selection_text <- renderText({
+    selected_columns <- selected_components$order
+
+    if (length(selected_columns) > 0) {
+      text <- paste("You have selected the following columns:")
+
+      for (col in selected_columns) {
+        values <- input[[col]]
+        col_text <- paste("Column", col, "with these values:", paste(values, collapse = ", "))
+        text <- paste(text, col_text)
+      }
+
+      text
+    } else {
+      "No columns selected."
+    }
+  })
+}
+
+# Run the Shiny app
+shinyApp(ui, server)
