@@ -30,18 +30,22 @@ server <- function(input, output, session) {
     
     # Update the UI
     output$dynamic_components <- renderUI({
-      tagList(
-        lapply(selected_components$order, function(comp) {
-          fluidRow(
-            column(12, h4(comp)),
-            column(12, pickerInput(
-              paste0("select_", comp),
-              label = "Select:",
-              choices = NULL
-            ))
-          )
-        })
-      )
+      if (length(selected_components$order) > 0) {
+        tagList(
+          lapply(selected_components$order, function(comp) {
+            fluidRow(
+              column(12, h4(comp)),
+              column(12, pickerInput(
+                paste0("select_", comp),
+                label = "Select:",
+                choices = NULL
+              ))
+            )
+          })
+        )
+      } else {
+        NULL  # If no components are selected, return NULL
+      }
     })
   })
   
@@ -52,6 +56,14 @@ server <- function(input, output, session) {
       
       # Update choices for the pickerInput based on comp
       updatePickerInput(session, id, choices = c("Choice 1", "Choice 2", "Choice 3"))
+    }
+  })
+  
+  # Reset selected_components if no components are selected
+  observeEvent(input$selected_components, {
+    if (length(input$selected_components) == 0) {
+      selected_components$order <- NULL
+      selected_components$components <- NULL
     }
   })
 }
