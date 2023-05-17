@@ -1,0 +1,54 @@
+library(shiny)
+
+# UI
+ui <- fluidPage(
+  checkboxGroupInput("selected_components", "Select components:",
+    choices = c("Component 1", "Component 2", "Component 3")
+  ),
+  
+  uiOutput("dynamic_components")
+)
+
+# Server
+server <- function(input, output) {
+  # Create a reactiveValues object to store the selected components and their order
+  selected_components <- reactiveValues(order = NULL, components = list())
+  
+  observeEvent(input$selected_components, {
+    # Get the newly selected components
+    newly_selected <- setdiff(input$selected_components, selected_components$order)
+    
+    # Append the newly selected components to the existing order
+    selected_components$order <- c(selected_components$order, newly_selected)
+    
+    # Iterate over the newly selected components
+    for (comp in newly_selected) {
+      # Create a unique ID for the selectInput
+      id <- paste0("select_", comp)
+      
+      # Add the selectInput to the components list
+      selected_components$components[[id]] <- fluidRow(
+        column(12, h4(comp)),
+        column(12, selectInput(id, label = "Select:", choices = NULL))
+      )
+    }
+    
+    # Update the UI
+    output$dynamic_components <- renderUI({
+      tagList(selected_components$components)
+    })
+  })
+  
+  # Sample reactive expressions to update choices for each selectInput
+  observe({
+    for (comp in selected_components$order) {
+      id <- paste0("select_", comp)
+      
+      # Update choices for the selectInput based on comp
+      updateSelectInput(session, id, choices = c("Choice 1", "Choice 2", "Choice 3"))
+    }
+  })
+}
+
+# Run the Shiny app
+shinyApp(ui, server)
