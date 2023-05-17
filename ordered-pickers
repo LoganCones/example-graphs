@@ -25,7 +25,7 @@ server <- function(input, output) {
   selected_components <- reactiveValues(order = NULL, components = NULL)
   
   observeEvent(input$selected_components, {
-    # Get the newly selected and deselected componentsa
+    # Get the newly selected and deselected components
     newly_selected <- setdiff(input$selected_components, selected_components$order)
     deselected <- setdiff(selected_components$order, input$selected_components)
     
@@ -35,10 +35,6 @@ server <- function(input, output) {
     
     # Append the newly selected components to the existing order
     selected_components$order <- c(selected_components$order, newly_selected)
-  
-  # Update the selected_columns reactive value when checkbox selection changes
-  observeEvent(input$selected_columns, {
-    selected_columns$order <- input$selected_columns
   })
   
   # Generate dynamic pickerInputs based on selected columns
@@ -52,12 +48,27 @@ server <- function(input, output) {
     dynamic_inputs <- lapply(selected, function(col) {
       column_input <- column(
         6,
-        pickerInput(inputId = col, label = col, choices = unique(selected_dataset[[col]]))
+        pickerInput(
+          inputId = col,
+          label = col,
+          choices = unique(selected_dataset[[col]]),
+          options = list(
+            actionsBox = TRUE,  # Enable deselect all option
+            liveSearch = TRUE  # Enable live search
+          )
+        )
       )
       
       aoe_input <- column(
         6,
-        pickerInput(inputId = paste0(col, "_aoe"), label = "AOE", choices = c("and", "or", "end"))
+        pickerInput(
+          inputId = paste0(col, "_aoe"),
+          label = "AOE",
+          choices = c("and", "or", "end"),
+          options = list(
+            actionsBox = TRUE  # Enable deselect all option
+          )
+        )
       )
       
       fluidRow(column_input, aoe_input)
@@ -67,8 +78,6 @@ server <- function(input, output) {
     output$dynamic_inputs <- renderUI({
       tagList(dynamic_inputs)
     })
-  })
-  
   })
   
   # Generate text output describing user selections
@@ -93,3 +102,4 @@ server <- function(input, output) {
 
 # Run the Shiny app
 shinyApp(ui, server)
+``
