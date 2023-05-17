@@ -20,10 +20,19 @@ ui <- fluidPage(
 )
 
 # Server
+# Server
 server <- function(input, output) {
+  # Create a reactive value to store the selected columns in order
+  selected_columns <- reactiveValues(order = character(0))
+  
+  # Update the selected_columns reactive value when checkbox selection changes
+  observeEvent(input$selected_columns, {
+    selected_columns$order <- input$selected_columns
+  })
+  
   # Generate dynamic pickerInputs based on selected columns
   observe({
-    selected <- input$selected_columns
+    selected <- selected_columns$order
     
     # Filter the dataset based on selected columns
     selected_dataset <- dataset[, selected, drop = FALSE]
@@ -51,7 +60,7 @@ server <- function(input, output) {
   
   # Generate text output describing user selections
   output$selection_text <- renderText({
-    selected_columns <- input$selected_columns
+    selected_columns <- selected_columns$order
     
     if (length(selected_columns) > 0) {
       text <- paste("You have selected the following columns:")
@@ -68,6 +77,3 @@ server <- function(input, output) {
     }
   })
 }
-
-# Run the Shiny app
-shinyApp(ui, server)
