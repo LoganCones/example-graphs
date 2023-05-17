@@ -54,8 +54,10 @@ server <- function(input, output) {
           choices = unique(selected_dataset[[col]]),
           options = list(
             actionsBox = TRUE,  # Enable deselect all option
-            liveSearch = TRUE  # Enable live search
-          )
+            liveSearch = TRUE,  # Enable live search
+            liveSearchPlaceholder = "Search"
+          ),
+          multiple = TRUE  # Enable multiple selection
         )
       )
       
@@ -101,5 +103,4 @@ server <- function(input, output) {
 }
 
 # Run the Shiny app
-shinyApp(ui, server)
-``
+shinyApp(ui, server
