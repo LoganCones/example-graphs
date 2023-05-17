@@ -13,36 +13,32 @@ ui <- fluidPage(
 
 # Server
 server <- function(input, output, session) {
-  # Create a reactiveValues object to store the selected components and their order
-  selected_components <- reactiveValues(order = character(0))
+  # Create an empty list to store the components
+  components <- list()
   
   observeEvent(input$selected_components, {
     # Get the newly selected and deselected components
-    newly_selected <- setdiff(input$selected_components, selected_components$order)
-    deselected <- setdiff(selected_components$order, input$selected_components)
+    selected <- input$selected_components
     
-    # Remove the deselected components from the order
-    selected_components$order <- setdiff(selected_components$order, deselected)
-    
-    # Append the newly selected components to the existing order
-    selected_components$order <- c(selected_components$order, newly_selected)
+    # Iterate over the selected components and create pickerInputs
+    components <- lapply(selected, function(comp) {
+      pickerInput(
+        paste0("select_", comp),
+        label = comp,
+        choices = NULL
+      )
+    })
     
     # Update the UI
     output$dynamic_components <- renderUI({
-      tagList(
-        lapply(selected_components$order, function(comp) {
-          pickerInput(
-            paste0("select_", comp),
-            label = comp,
-            choices = NULL
-          )
-        })
-      )
+      tagList(components)
     })
   })
   
   observe({
-    for (comp in selected_components$order) {
+    # Update choices for the pickerInputs based on the selected components
+    selected <- input$selected_components
+    for (comp in selected) {
       id <- paste0("select_", comp)
       
       # Update choices for the pickerInput based on comp
