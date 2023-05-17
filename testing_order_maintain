@@ -1,69 +1,70 @@
 library(shiny)
 
+# Sample dataset
+dataset <- data.frame(
+  col1 = 1:5,
+  col2 = letters[1:5],
+  col3 = LETTERS[1:5],
+  col4 = rnorm(5),
+  col5 = runif(5),
+  col6 = c(TRUE, FALSE, TRUE, FALSE, TRUE),
+  col7 = factor(c("A", "B", "A", "B", "A")),
+  col8 = as.Date("2022-01-01") + 0:4
+)
+
 # UI
 ui <- fluidPage(
-  checkboxGroupInput(
-    "selected_components",
-    "Select components:",
-    choices = c("Component 1", "Component 2", "Component 3")
-  ),
-  
-  uiOutput("dynamic_components")
+  checkboxGroupInput("selected_columns", "Select columns:", choices = colnames(dataset)),
+  uiOutput("dynamic_inputs"),
+  verbatimTextOutput("selection_text")
 )
 
 # Server
-server <- function(input, output, session) {
-  # Create a reactiveValues object to store the selected components and their order
-  selected_components <- reactiveValues(order = NULL, components = NULL)
-  
-  observeEvent(input$selected_components, {
-    # Get the newly selected and deselected components
-    newly_selected <- setdiff(input$selected_components, selected_components$order)
-    deselected <- setdiff(selected_components$order, input$selected_components)
+server <- function(input, output) {
+  # Generate dynamic pickerInputs based on selected columns
+  observe({
+    selected <- input$selected_columns
     
-    # Remove the deselected components from the order and components
-    selected_components$order <- setdiff(selected_components$order, deselected)
-    selected_components$components <- selected_components$components[!names(selected_components$components) %in% deselected]
+    # Filter the dataset based on selected columns
+    selected_dataset <- dataset[, selected, drop = FALSE]
     
-    # Append the newly selected components to the existing order
-    selected_components$order <- c(selected_components$order, newly_selected)
+    # Create dynamic inputs and their corresponding 'and/or/end' inputs
+    dynamic_inputs <- lapply(selected, function(col) {
+      column_input <- column(
+        6,
+        pickerInput(inputId = col, label = col, choices = unique(selected_dataset[[col]]))
+      )
+      
+      aoe_input <- column(
+        6,
+        pickerInput(inputId = paste0(col, "_aoe"), label = "AOE", choices = c("and", "or", "end"))
+      )
+      
+      fluidRow(column_input, aoe_input)
+    })
     
-    # Update the UI
-    output$dynamic_components <- renderUI({
-      if (length(selected_components$order) > 0) {
-        tagList(
-          lapply(selected_components$order, function(comp) {
-            fluidRow(
-              column(12, h4(comp)),
-              column(12, pickerInput(
-                paste0("select_", comp),
-                label = "Select:",
-                choices = NULL
-              ))
-            )
-          })
-        )
-      } else {
-        NULL  # If no components are selected, return NULL
-      }
+    # Update the UI with dynamic inputs
+    output$dynamic_inputs <- renderUI({
+      tagList(dynamic_inputs)
     })
   })
   
-  # Sample reactive expressions to update choices for each pickerInput
-  observe({
-    for (comp in selected_components$order) {
-      id <- paste0("select_", comp)
+  # Generate text output describing user selections
+  output$selection_text <- renderText({
+    selected_columns <- input$selected_columns
+    
+    if (length(selected_columns) > 0) {
+      text <- paste("You have selected the following columns:")
       
-      # Update choices for the pickerInput based on comp
-      updatePickerInput(session, id, choices = c("Choice 1", "Choice 2", "Choice 3"))
-    }
-  })
-  
-  # Reset selected_components if no components are selected
-  observeEvent(input$selected_components, {
-    if (length(input$selected_components) == 0) {
-      selected_components$order <- NULL
-      selected_components$components <- NULL
+      for (col in selected_columns) {
+        values <- input[[col]]
+        col_text <- paste("Column", col, "with these values:", paste(values, collapse = ", "))
+        text <- paste(text, col_text)
+      }
+      
+      text
+    } else {
+      "No columns selected."
     }
   })
 }
