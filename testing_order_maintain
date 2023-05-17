@@ -14,54 +14,44 @@ ui <- fluidPage(
 # Server
 server <- function(input, output, session) {
   # Create a reactiveValues object to store the selected components and their order
-  selected_components <- reactiveValues(order = NULL, components = NULL)
+  selected_components <- reactiveValues(order = NULL)
   
   observeEvent(input$selected_components, {
     # Get the newly selected and deselected components
     newly_selected <- setdiff(input$selected_components, selected_components$order)
     deselected <- setdiff(selected_components$order, input$selected_components)
     
-    # Remove the deselected components from the order and components
+    # Remove the deselected components from the order
     selected_components$order <- setdiff(selected_components$order, deselected)
-    selected_components$components <- selected_components$components[-which(names(selected_components$components) %in% deselected)]
     
     # Append the newly selected components to the existing order
     selected_components$order <- c(selected_components$order, newly_selected)
     
-    # Create the pickerInputs for the newly selected components
-    new_components <- lapply(newly_selected, function(comp) {
-      pickerInput(
-        paste0("select_", comp),
-        label = comp,
-        choices = NULL
-      )
-    })
-    
-    # Update the choices for all pickerInputs
-    update_picker_inputs()
-    
-    # Combine the existing components with the new components and store them in selected_components
-    selected_components$components <- c(selected_components$components, new_components)
-    
     # Update the UI
     output$dynamic_components <- renderUI({
-      tagList(selected_components$components)
+      tagList(
+        lapply(selected_components$order, function(comp) {
+          fluidRow(
+            column(12, h4(comp)),
+            column(12, pickerInput(
+              paste0("select_", comp),
+              label = "Select:",
+              choices = NULL
+            ))
+          )
+        })
+      )
     })
   })
   
-  # Function to update the choices for all pickerInputs
-  update_picker_inputs <- function() {
+  # Sample reactive expressions to update choices for each pickerInput
+  observe({
     for (comp in selected_components$order) {
       id <- paste0("select_", comp)
       
       # Update choices for the pickerInput based on comp
       updatePickerInput(session, id, choices = c("Choice 1", "Choice 2", "Choice 3"))
     }
-  }
-  
-  # Initial update of pickerInputs when the app starts
-  observe({
-    update_picker_inputs()
   })
 }
 
