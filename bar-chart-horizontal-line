@@ -1,1 +1,30 @@
 
+library(ggplot2)
+
+# Sample data
+data <- data.frame(
+  Category = c("A", "B", "C", "D"),
+  Value = c(20, 30, 15, 25)
+)
+
+# Create the plot
+p <- ggplot(data, aes(x = Category, y = Value)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_hline(yintercept = 25, color = "red", linetype = "dashed") +
+  labs(title = "Bar Chart with Goal Line", x = "Category", y = "Value") +
+  scale_fill_manual(values = "steelblue") +
+  scale_color_manual(values = c("red", "black")) +
+  guides(color = guide_legend(override.aes = list(linetype = c("dashed", "blank"))))
+
+# Add custom legend
+p <- p + guides(fill = guide_legend(override.aes = list(color = "black", linetype = "blank")),
+                color = guide_legend(title = "Goal"))
+
+# Adjust line aesthetics
+p <- p + theme(legend.key.size = unit(1.5, "lines"),
+               legend.key = element_blank(),
+               legend.text = element_text(size = 12),
+               legend.title = element_text(size = 14))
+
+# Display the plot
+print(p)
