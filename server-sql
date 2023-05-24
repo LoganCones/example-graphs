@@ -1,0 +1,102 @@
+# Server
+server <- function(input, output) {
+  # Create a reactive value to store the selected columns in order
+  selected_columns <- reactiveValues(order = character(0))
+  
+  # Create a reactiveValues object to store the selected values for each column
+  selected_values <- reactiveValues()
+  
+  # Update the selected_columns reactive value when checkbox selection changes
+  observeEvent(input$selected_columns, {
+    selected_columns$order <- input$selected_columns
+  })
+  
+  # Generate dynamic pickerInputs based on selected columns
+  observe({
+    selected <- selected_columns$order
+    
+    # Filter the dataset based on selected columns
+    selected_dataset <- dataset[, selected, drop = FALSE]
+    
+    # Create dynamic inputs and their corresponding 'and/or/end' inputs
+    dynamic_inputs <- lapply(selected, function(col) {
+      column_input <- column(
+        6,
+        pickerInput(
+          inputId = col,
+          label = col,
+          choices = unique(selected_dataset[[col]]),
+          selected = selected_values[[col]] # Set the selected values from the reactiveValues object
+        )
+      )
+      
+      aoe_input <- column(
+        6,
+        pickerInput(inputId = paste0(col, "_aoe"), label = "AOE", choices = c("and", "or", "end"))
+      )
+      
+      fluidRow(column_input, aoe_input)
+    })
+    
+    # Update the UI with dynamic inputs
+    output$dynamic_inputs <- renderUI({
+      tagList(dynamic_inputs)
+    })
+  })
+  
+  # Update the selected values when the pickerInput selection changes
+  observeEvent(input$selected_columns, {
+    selected <- selected_columns$order
+    
+    for (col in selected) {
+      selected_values[[col]] <- input[[col]]
+    }
+  })
+  
+  # Generate SQL query based on user inputs
+  output$sql_query <- renderText({
+    selected_columns <- selected_columns$order
+    
+    # Check if any columns are selected
+    if (length(selected_columns) > 0) {
+      sql_query <- "SELECT * FROM dataset WHERE "
+      
+      conditions <- character(0)
+      
+      # Iterate over selected columns
+      for (col in selected_columns) {
+        values <- input[[col]]
+        
+        # Check if values are selected for the column
+        if (length(values) > 0) {
+          # Generate SQL condition for column values
+          condition <- paste0(col, " IN ('", paste(values, collapse = "', '"), "')")
+          
+          # Get the corresponding AOE (and/or/end) input value
+          aoe <- input[[paste0(col, "_aoe")]]
+          
+          # Append AOE to the condition
+          if (aoe == "and") {
+            condition <- paste0(condition, " AND ")
+          } else if (aoe == "or") {
+            condition <- paste0(condition, " OR ")
+          }
+          
+          # Add the condition to the list
+          conditions <- c(conditions, condition)
+        }
+      }
+      
+      # Combine all conditions with 'AND'
+      if (length(conditions) > 0) {
+        sql_query <- paste(sql_query, paste(conditions, collapse = " AND "))
+      } else {
+        sql_query <- "No filters selected."
+      }
+      
+      sql_query
+    } else {
+      "No columns selected."
+    }
+  })
+}
