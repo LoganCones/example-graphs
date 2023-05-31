@@ -1,1 +1,24 @@
 
+library(ggplot2)
+
+# Assuming you have a data frame named 'df' with columns 'date' and 'value'
+# You can modify this to match your actual data frame structure
+
+# Example data
+df <- data.frame(
+  date = c("2021-01", "2021-02", "2021-03", "2021-04", "2021-05"),
+  value = c(10, 15, 12, 17, 11)
+)
+
+# Create the plot
+ggplot(df, aes(x = date, y = value)) +
+  geom_line() +
+  geom_hline(aes(yintercept = 13, linetype = "Target Line"), color = "red") +
+  labs(title = "Line Chart with Target Line",
+       x = "Date",
+       y = "Value") +
+  scale_linetype_manual(values = "dotted", guide = guide_legend(override.aes = list(color = "red"))) +
+  theme_minimal()
+
+# Optional: You can save the plot as an image file by adding the following line
+# ggsave("line_chart.png", width = 8, height = 6, dpi = 300)
