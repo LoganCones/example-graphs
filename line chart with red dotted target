@@ -1,4 +1,7 @@
 
+  scale_y_continuous(labels = function(x) str_replace(x, "^0\\.", ".")) +
+
+
 library(ggplot2)
 
 # Assuming you have a data frame named 'df' with columns 'date' and 'value'
