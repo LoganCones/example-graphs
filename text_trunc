@@ -1,0 +1,106 @@
+library(shiny)
+library(DT)
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("truncation_length", "Truncation Length", value = 10)
+    ),
+    mainPanel(
+      DTOutput("my_table")
+    )
+  )
+)
+
+server <- function(input, output) {
+  output$my_table <- renderDT({
+    # Create a data frame to display in the table
+    df <- data.frame(
+      Name = c("John", "Jane", "Michael"),
+      Age = c(25, 30, 35),
+      Description = c(
+        "This is a long description that should be truncated.",
+        "Another long description that needs truncation.",
+        "A third long description to demonstrate truncation."
+      ),
+      stringsAsFactors = FALSE
+    )
+    
+    # Truncate text in all columns based on the input value
+    truncation_length <- input$truncation_length
+    options <- list(columnDefs = list(list(
+      targets = "_all",
+      render = JS(
+        sprintf(
+          "function(data, type, row, meta) {
+            if (type === 'display' && data.length > %d) {
+              return data.substr(0, %d) + '...';
+            } else {
+              return data;
+            }
+          }",
+          truncation_length,
+          truncation_length
+        )
+      )
+    )))
+    
+    # Render the data table
+    datatable(df, options = options)
+  })
+}
+
+shinyApp(ui, server)
+library(shiny)
+library(DT)
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("truncation_length", "Truncation Length", value = 10)
+    ),
+    mainPanel(
+      DTOutput("my_table")
+    )
+  )
+)
+
+server <- function(input, output) {
+  output$my_table <- renderDT({
+    # Create a data frame to display in the table
+    df <- data.frame(
+      Name = c("John", "Jane", "Michael"),
+      Age = c(25, 30, 35),
+      Description = c(
+        "This is a long description that should be truncated.",
+        "Another long description that needs truncation.",
+        "A third long description to demonstrate truncation."
+      ),
+      stringsAsFactors = FALSE
+    )
+    
+    # Truncate text in all columns based on the input value
+    truncation_length <- input$truncation_length
+    options <- list(columnDefs = list(list(
+      targets = "_all",
+      render = JS(
+        sprintf(
+          "function(data, type, row, meta) {
+            if (type === 'display' && data.length > %d) {
+              return data.substr(0, %d) + '...';
+            } else {
+              return data;
+            }
+          }",
+          truncation_length,
+          truncation_length
+        )
+      )
+    )))
+    
+    # Render the data table
+    datatable(df, options = options)
+  })
+}
+
+shinyApp(ui, server)
