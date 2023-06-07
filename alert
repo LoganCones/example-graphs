@@ -9,7 +9,7 @@ ui <- fluidPage(
   
   actionButton("action", "Submit"),
   
-  dataTableOutput("datatable")
+  DT::dataTableOutput("datatable")
 )
 
 server <- function(input, output, session) {
@@ -37,12 +37,22 @@ server <- function(input, output, session) {
             stringsAsFactors = FALSE
           )
           
-          output$datatable <- renderDataTable({
-            newData
+          output$datatable <- DT::renderDataTable({
+            DT::datatable(newData)
           })
           
-          shinyjs::runjs('setTimeout(function() { $(".shinyalert-container").remove(); }, 2000);')
-          shinyalert("Success", type = 'success', showConfirmButton = FALSE)
+          shinyjs::runjs('
+            setTimeout(function() {
+              var successAlert = $(\'.shinyalert-container:contains("Processing")\');
+              successAlert.find(\'.shinyalert-title\').text("Success");
+              successAlert.find(\'.shinyalert-text\').text("Table loaded successfully");
+              successAlert.find(\'.shinyalert-icon\').removeClass("sa-info");
+              successAlert.find(\'.shinyalert-icon\').addClass("sa-success");
+              setTimeout(function() {
+                successAlert.remove();
+              }, 2000);
+            }, 0);
+          ')
         } else {
           shinyalert('Submission canceled', type = 'info')
         }
@@ -50,7 +60,7 @@ server <- function(input, output, session) {
     )
   })
   
-  output$datatable <- renderDataTable({
+  output$datatable <- DT::renderDataTable({
     data.frame()
   })
 }
