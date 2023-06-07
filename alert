@@ -1,10 +1,8 @@
 library(shiny)
-library(shinyalert)
 library(DT)
 library(shinyjs)
 
 ui <- fluidPage(
-  shinyalert::useShinyalert(),
   shinyjs::useShinyjs(),
   
   actionButton("action", "Submit"),
@@ -13,46 +11,38 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  processing <- reactiveVal(FALSE)
-  
   observeEvent(input$action, {
-    shinyalert(
-      title = 'Test',
-      class = 'confirm',
-      text = 'Please confirm your submission',
-      type = 'warning',
-      showCancelButton = TRUE,
-      confirmButtonText = 'Confirmed',
-      cancelButtonText = 'Cancel',
-      callbackR = function(value) {
-        if (value) {
-          processing(TRUE)
-          shinyjs::disable("action")  # Disable the action button
-          shinyalert("Processing", type = 'info', showConfirmButton = FALSE)
-          
-          # Simulate loading time
-          Sys.sleep(3)
-          
-          # Update the datatableOutput with new data
-          newData <- data.frame(
-            Name = c("John", "Jane", "Sam"),
-            Age = c(25, 32, 40),
-            stringsAsFactors = FALSE
-          )
-          
-          output$datatable <- DT::renderDataTable({
-            processing(FALSE)
-            shinyjs::enable("action")  # Enable the action button
-            DT::datatable(newData)
-          })
-          
-          shinyjs::runjs('$("#processingAlert").modal("hide");')  # Hide the processing alert
-          shinyalert("Success", type = 'success', showConfirmButton = FALSE)
-          shinyjs::runjs('setTimeout(function() { $(".shinyalert-container").remove(); }, 2000);')  # Close the success alert after 2 seconds
-        } else {
-          shinyalert('Submission canceled', type = 'info')
-        }
-      }
+    shinyjs::disable("action")
+    
+    showNotification(
+      ui = div("Processing...", id = "processing_notification"),
+      duration = NULL,
+      closeButton = FALSE
+    )
+    
+    # Simulate loading time
+    Sys.sleep(3)
+    
+    # Update the datatableOutput with new data
+    newData <- data.frame(
+      Name = c("John", "Jane", "Sam"),
+      Age = c(25, 32, 40),
+      stringsAsFactors = FALSE
+    )
+    
+    output$datatable <- DT::renderDataTable({
+      DT::datatable(newData)
+    })
+    
+    shinyjs::show("processing_notification")
+    shinyjs::hide("processing_notification", delay = 2)
+    
+    shinyjs::enable("action")
+    showNotification(
+      ui = div("Success", id = "success_notification"),
+      duration = 2,
+      closeButton = FALSE,
+      type = "success"
     )
   })
   
