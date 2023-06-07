@@ -1,9 +1,11 @@
 library(shiny)
 library(shinyalert)
 library(DT)
+library(shinyjs)
 
 ui <- fluidPage(
   shinyalert::useShinyalert(),
+  shinyjs::useShinyjs(),
   
   actionButton("action", "Submit"),
   
@@ -25,6 +27,7 @@ server <- function(input, output, session) {
       callbackR = function(value) {
         if (value) {
           processing(TRUE)
+          shinyjs::disable("action")  # Disable the action button
           shinyalert("Processing", type = 'info', showConfirmButton = FALSE)
           
           # Simulate loading time
@@ -39,23 +42,18 @@ server <- function(input, output, session) {
           
           output$datatable <- DT::renderDataTable({
             processing(FALSE)
+            shinyjs::enable("action")  # Enable the action button
             DT::datatable(newData)
           })
+          
+          shinyjs::runjs('$("#processingAlert").modal("hide");')  # Hide the processing alert
+          shinyalert("Success", type = 'success', showConfirmButton = FALSE)
+          shinyjs::runjs('setTimeout(function() { $(".shinyalert-container").remove(); }, 2000);')  # Close the success alert after 2 seconds
         } else {
           shinyalert('Submission canceled', type = 'info')
         }
       }
     )
-  })
-  
-  observe({
-    if (processing()) {
-      shinyalert_update("Processing", type = "info")
-    } else {
-      shinyalert_update("Success", type = "success")
-      Sys.sleep(2)
-      shinyalert_close()
-    }
   })
   
   output$datatable <- DT::renderDataTable({
