@@ -41,11 +41,8 @@ server <- function(input, output, session) {
             newData
           })
           
-          shinyjs::delay(
-            2000, # Delay for 2 seconds
-            shinyjs::hide(selector = ".shinyalert-container"), # Hide the alert
-            shinyalert::shinyalert("Success", type = 'success', showConfirmButton = FALSE) # Show the "Success" alert
-          )
+          shinyjs::runjs('setTimeout(function() { $(".shinyalert-container").remove(); }, 2000);')
+          shinyalert("Success", type = 'success', showConfirmButton = FALSE)
         } else {
           shinyalert('Submission canceled', type = 'info')
         }
