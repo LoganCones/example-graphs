@@ -1,67 +1,54 @@
 library(shiny)
 library(shinyalert)
+library(DT)
 
 ui <- fluidPage(
   shinyalert::useShinyalert(),
   
-  actionButton("submitBtn", "Submit"),
+  actionButton("action", "Submit"),
   
-  tableOutput("dataTable")
+  dataTableOutput("datatable")
 )
 
 server <- function(input, output, session) {
   
-  data <- reactiveVal(NULL)
-  
-  observeEvent(input$submitBtn, {
+  observeEvent(input$action, {
     shinyalert(
-      title = "Confirmation",
-      text = "Are you sure you want to submit?",
-      type = "info",
+      title = 'Test',
+      class = 'confirm',
+      text = 'Please confirm your submission',
+      type = 'warning',
       showCancelButton = TRUE,
-      closeOnClickOutside = FALSE,
-      callbackR = TRUE,
-      confirmButtonText = "Submit"
+      confirmButtonText = 'Confirmed',
+      cancelButtonText = 'Cancel',
+      callbackR = function(value) {
+        if (value) {
+          shinyalert("Processing", type = 'info', showConfirmButton = FALSE)
+          
+          # Simulate loading time
+          Sys.sleep(3)
+          
+          # Update the datatableOutput with new data
+          newData <- data.frame(
+            Name = c("John", "Jane", "Sam"),
+            Age = c(25, 32, 40),
+            stringsAsFactors = FALSE
+          )
+          
+          output$datatable <- renderDataTable({
+            newData
+          })
+          
+          shinyalert("Success", type = 'success')
+        } else {
+          shinyalert('Submission canceled', type = 'info')
+        }
+      }
     )
   })
   
-  observeEvent(input$shinyalert, {
-    if (input$shinyalert == TRUE) {
-      # Show loading message
-      shinyalert(
-        title = "Processing",
-        text = shiny::div(
-          shiny::tags$p("Please wait while the action is being processed..."),
-          shiny::tags$div(class = "shinyalert-progress-container",
-                          shiny::tags$div(class = "shinyalert-progress-bar")
-          )
-        ),
-        type = "info",
-        closeOnClickOutside = FALSE,
-        showConfirmButton = FALSE
-      )
-      
-      # Perform your time-consuming operation here
-      
-      # Simulate a delay of 3 seconds
-      Sys.sleep(3)
-      
-      # Hide the loading message and show the final message
-      shinyalert(
-        title = "Submitted",
-        type = "success",
-        showConfirmButton = FALSE,
-        timer = 2000
-      )
-      
-      # Update the table with new data
-      newData <- # Your code to generate new data
-      data(newData)
-    }
-  })
-  
-  output$dataTable <- renderTable({
-    data()
+  output$datatable <- renderDataTable({
+    data.frame()
   })
 }
 
