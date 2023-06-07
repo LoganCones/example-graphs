@@ -1,9 +1,11 @@
 library(shiny)
 library(shinyalert)
 library(DT)
+library(shinyjs)
 
 ui <- fluidPage(
   shinyalert::useShinyalert(),
+  shinyjs::useShinyjs(),
   
   actionButton("action", "Submit"),
   
@@ -39,7 +41,11 @@ server <- function(input, output, session) {
             newData
           })
           
-          shinyalert("Success", type = 'success')
+          shinyjs::delay(
+            2000, # Delay for 2 seconds
+            shinyjs::hide(selector = ".shinyalert-container"), # Hide the alert
+            shinyalert::shinyalert("Success", type = 'success', showConfirmButton = FALSE) # Show the "Success" alert
+          )
         } else {
           shinyalert('Submission canceled', type = 'info')
         }
