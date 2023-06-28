@@ -1,0 +1,35 @@
+import pandas as pd
+import plotly.express as px
+import ipywidgets as widgets
+from IPython.display import display
+
+# Assuming you have a dataframe called 'df' with a column named 'ID' containing the IDs
+
+# Extract the top 5 IDs from the 'ID' column
+top_ids = df['ID'].value_counts().head(5).index.tolist()
+
+# Create a dropdown widget for ID selection
+id_dropdown = widgets.Dropdown(options=top_ids, description='Select ID:')
+
+# Create an empty figure initially
+fig = px.timeline()
+
+# Function to update the plot based on the selected ID
+def update_plot(change):
+    id_value = change.new
+    filtered_df = df[df['ID'] == id_value]  # Filter the dataframe for the selected ID
+    
+    # Clear existing traces in the figure
+    fig.data = []
+    
+    if not filtered_df.empty:
+        fig.add_trace(px.timeline(filtered_df, x_start='Start', x_end='End', y=id_value).data[0])
+    
+    fig.update_layout(yaxis=dict(autorange="reversed"))
+    fig.show()
+
+# Register the update_plot function to be called when the dropdown value changes
+id_dropdown.observe(update_plot, names='value')
+
+# Display the dropdown widget
+display(id_dropdown)
