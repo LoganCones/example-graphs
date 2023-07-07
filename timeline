@@ -1,0 +1,44 @@
+library(shiny)
+library(plotly)
+
+# Assuming you have a dataframe called 'df' with a column named 'ID' containing the IDs
+
+# Define UI
+ui <- fluidPage(
+  titlePanel("Timeline Chart"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("id_dropdown", "Select ID:", choices = NULL)
+    ),
+    mainPanel(
+      plotlyOutput("timeline_chart")
+    )
+  )
+)
+
+# Define server
+server <- function(input, output, session) {
+  
+  # Extract the top 5 IDs from the 'ID' column
+  top_ids <- names(head(sort(table(df$ID), decreasing = TRUE), 5))
+  
+  # Update dropdown choices
+  updateSelectInput(session, "id_dropdown", choices = top_ids)
+  
+  # Create a reactive filtered dataframe based on selected ID
+  filtered_df <- reactive({
+    df[df$ID == input$id_dropdown, ]
+  })
+  
+  # Render the timeline chart
+  output$timeline_chart <- renderPlotly({
+    if (!is.null(input$id_dropdown) && !is.empty(filtered_df())) {
+      fig <- plot_ly(filtered_df(), x = ~Start, y = ~ID, xend = ~End, type = "bar", orientation = "h")
+      fig <- fig %>% layout(yaxis = list(autorange = "reversed"))
+      fig
+    }
+  })
+}
+
+# Run the application
+shinyApp(ui, server)
